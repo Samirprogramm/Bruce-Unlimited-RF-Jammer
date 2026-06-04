@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "polymarket-sharp"
+version = "0.1.0"
+description = "Score Polymarket wallets by accuracy (skill vs. baseline) and surface consensus signals."
+readme = "POLYMARKET_SHARP.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+http = ["requests>=2.28"]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+polymarket-sharp = "polymarket_sharp.cli:main"
+
+[tool.setuptools]
+packages = ["polymarket_sharp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
