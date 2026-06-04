@@ -1,15 +1,15 @@
 """Tests for the consensus signal engine and the end-to-end pipeline."""
 
-from polymarket_sharp.config import SignalConfig
-from polymarket_sharp.models import (
+from polymarket_copytrader.config import SignalConfig
+from polymarket_copytrader.models import (
     Market,
     OpenPosition,
     WalletHistory,
     WalletScore,
 )
-from polymarket_sharp.pipeline import run_pipeline
-from polymarket_sharp.signals import find_signals
-from polymarket_sharp.synthetic import generate_universe
+from polymarket_copytrader.pipeline import run_pipeline
+from polymarket_copytrader.signals import find_signals
+from polymarket_copytrader.synthetic import generate_universe
 
 
 def _score(addr, weight, sharp=True):

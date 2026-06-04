@@ -1,8 +1,8 @@
-# Polymarket Sharp Wallets
+# Polymarket Copytrader
 
 Find the wallets on Polymarket that are *actually* sharp — ranked by
-**accuracy**, not profit — and only surface a prediction when several of them
-independently land on the same side of a market.
+**accuracy**, not profit — and copytrade only the high-consensus signals where
+several of them independently land on the same side of a market.
 
 > Most "top trader" lists rank by P&L, which mostly rewards size and luck.
 > A whale can dump millions into 50/50 markets, get lucky, and top the
@@ -28,8 +28,8 @@ scan  ->  score  ->  rank  ->  signal
 ```
 
 1. **Scan** — pull markets and wallet positions from Polymarket
-   (`polymarket_sharp/client.py`), or generate a synthetic universe for
-   testing (`polymarket_sharp/synthetic.py`).
+   (`polymarket_copytrader/client.py`), or generate a synthetic universe for
+   testing (`polymarket_copytrader/synthetic.py`).
 
 2. **Score** (`scoring.py`) — model each wallet's settled bets as a
    Poisson-binomial (independent Bernoulli trials with different probabilities)
@@ -65,10 +65,10 @@ No third-party packages are required to run the core or the demo.
 
 ```bash
 # End-to-end on synthetic data (offline) — see the full flow:
-python -m polymarket_sharp.cli demo
+python -m polymarket_copytrader.cli demo
 
 # Scale it up:
-python -m polymarket_sharp.cli demo --wallets 20000 --seed 1
+python -m polymarket_copytrader.cli demo --wallets 20000 --seed 1
 
 # Run the tests:
 pip install pytest        # only needed for the test suite
@@ -79,7 +79,7 @@ pytest
 
 ```bash
 # Provide your own newline-delimited wallet addresses:
-python -m polymarket_sharp.cli live --wallets-file addresses.txt
+python -m polymarket_copytrader.cli live --wallets-file addresses.txt
 
 # Optional, nicer HTTP:
 pip install requests
@@ -96,8 +96,8 @@ deliberate extension point.
 ## Library use
 
 ```python
-from polymarket_sharp import run_pipeline
-from polymarket_sharp.synthetic import generate_universe
+from polymarket_copytrader import run_pipeline
+from polymarket_copytrader.synthetic import generate_universe
 
 markets, histories = generate_universe(n_wallets=5000)
 result = run_pipeline(markets, histories)
@@ -112,7 +112,7 @@ for signal in result.signals:
 
 ## Tuning
 
-All thresholds live in `polymarket_sharp/config.py` (`ScoringConfig`,
+All thresholds live in `polymarket_copytrader/config.py` (`ScoringConfig`,
 `SignalConfig`) and can be passed into `run_pipeline`. Loosen them to explore,
 tighten them to be conservative.
 
@@ -129,7 +129,7 @@ tighten them to be conservative.
 ## Layout
 
 ```
-polymarket_sharp/
+polymarket_copytrader/
   config.py      # tunable thresholds
   models.py      # dataclasses (Market, ResolvedBet, WalletScore, Signal, ...)
   scoring.py     # accuracy-vs-baseline statistics

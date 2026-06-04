@@ -9,7 +9,7 @@ The client is intentionally thin and dependency-light: it uses ``requests``
 when available and otherwise falls back to ``urllib`` from the standard
 library, so the package has *no hard third-party requirement*. Network access
 is optional — the scoring/signal engines run entirely on the dataclasses in
-:mod:`polymarket_sharp.models`, which you can also populate from the synthetic
+:mod:`polymarket_copytrader.models`, which you can also populate from the synthetic
 generator or your own data source.
 
 Note: Polymarket's schema evolves. The parsing here targets the commonly
@@ -49,7 +49,7 @@ class PolymarketClient:
         data_base: str = DATA_BASE,
         timeout: float = 20.0,
         max_retries: int = 3,
-        user_agent: str = "polymarket-sharp/0.1",
+        user_agent: str = "polymarket-copytrader/0.1",
     ) -> None:
         self.gamma_base = gamma_base.rstrip("/")
         self.data_base = data_base.rstrip("/")

@@ -10,7 +10,7 @@ The public surface mirrors the pipeline described in the project README:
 
 Most callers only need a handful of names:
 
-    from polymarket_sharp import (
+    from polymarket_copytrader import (
         score_wallet,
         rank_wallets,
         find_signals,

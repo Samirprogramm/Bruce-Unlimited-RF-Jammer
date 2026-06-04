@@ -3,10 +3,10 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "polymarket-sharp"
+name = "polymarket-copytrader"
 version = "0.1.0"
-description = "Score Polymarket wallets by accuracy (skill vs. baseline) and surface consensus signals."
-readme = "POLYMARKET_SHARP.md"
+description = "Find genuinely sharp Polymarket wallets by accuracy and copytrade only their high-consensus signals."
+readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = []
@@ -16,10 +16,10 @@ http = ["requests>=2.28"]
 dev = ["pytest>=7.0"]
 
 [project.scripts]
-polymarket-sharp = "polymarket_sharp.cli:main"
+polymarket-copytrader = "polymarket_copytrader.cli:main"
 
 [tool.setuptools]
-packages = ["polymarket_sharp"]
+packages = ["polymarket_copytrader"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

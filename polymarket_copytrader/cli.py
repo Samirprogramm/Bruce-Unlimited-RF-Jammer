@@ -9,9 +9,9 @@ Two modes:
     leaderboard that exposes them).
 
 Usage:
-    python -m polymarket_sharp.cli demo
-    python -m polymarket_sharp.cli demo --wallets 20000 --seed 1
-    python -m polymarket_sharp.cli live --wallets-file addrs.txt
+    python -m polymarket_copytrader.cli demo
+    python -m polymarket_copytrader.cli demo --wallets 20000 --seed 1
+    python -m polymarket_copytrader.cli live --wallets-file addrs.txt
 """
 
 from __future__ import annotations
@@ -75,7 +75,7 @@ def _cmd_live(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="polymarket-sharp",
+        prog="polymarket-copytrader",
         description="Score Polymarket wallets by accuracy and surface consensus signals.",
     )
     sub = parser.add_subparsers(dest="command", required=True)

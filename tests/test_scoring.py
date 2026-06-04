@@ -2,9 +2,9 @@
 
 import math
 
-from polymarket_sharp.config import ScoringConfig
-from polymarket_sharp.models import ResolvedBet, WalletHistory
-from polymarket_sharp.scoring import poisson_binomial_z, score_wallet
+from polymarket_copytrader.config import ScoringConfig
+from polymarket_copytrader.models import ResolvedBet, WalletHistory
+from polymarket_copytrader.scoring import poisson_binomial_z, score_wallet
 
 
 def _bets(n, price, win_rate, seed=0):
