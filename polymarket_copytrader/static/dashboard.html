@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Polymarket Copytrader</title>
+<style>
+  :root{
+    --bg:#070b14; --bg2:#0c1322; --card:#111a2e; --card2:#0e1626;
+    --line:#1d2940; --txt:#e8eef9; --muted:#8a98b5; --faint:#5b6884;
+    --accent:#5b8cff; --accent2:#7c5cff; --good:#28d6a3; --bad:#ff5f7a;
+    --warn:#ffc14d; --chip:#16223a;
+    --grad:linear-gradient(135deg,#5b8cff 0%,#7c5cff 60%,#28d6a3 130%);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:radial-gradient(1200px 700px at 80% -10%,#142447 0%,transparent 55%),
+               radial-gradient(900px 600px at -10% 10%,#1a1240 0%,transparent 50%),
+               var(--bg);
+    color:var(--txt); -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  .wrap{max-width:1240px;margin:0 auto;padding:28px 22px 80px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{width:46px;height:46px;border-radius:13px;background:var(--grad);
+    display:grid;place-items:center;font-weight:800;font-size:20px;color:#fff;
+    box-shadow:0 8px 30px rgba(91,140,255,.35)}
+  .brand h1{font-size:20px;margin:0;letter-spacing:.3px}
+  .brand p{margin:2px 0 0;color:var(--muted);font-size:12.5px}
+  .pill{font-size:11px;color:var(--good);background:rgba(40,214,163,.1);
+    border:1px solid rgba(40,214,163,.3);padding:4px 10px;border-radius:999px}
+
+  .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:22px;
+    background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+  .ctl{display:flex;flex-direction:column;gap:5px}
+  .ctl label{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.6px}
+  .ctl input, .ctl select{background:var(--bg2);border:1px solid var(--line);color:var(--txt);
+    border-radius:10px;padding:9px 11px;font-size:14px;min-width:120px}
+  .seg{display:flex;background:var(--bg2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{background:transparent;border:0;color:var(--muted);padding:9px 14px;font-size:13px;cursor:pointer}
+  .seg button.on{background:var(--grad);color:#fff;font-weight:600}
+  .scan{margin-left:auto;background:var(--grad);border:0;color:#fff;font-weight:700;
+    padding:12px 22px;border-radius:12px;font-size:14px;cursor:pointer;
+    box-shadow:0 10px 26px rgba(124,92,255,.35);transition:transform .08s}
+  .scan:active{transform:translateY(1px)}
+  .scan[disabled]{opacity:.6;cursor:wait}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}
+  .stat{background:linear-gradient(180deg,var(--card) 0%,var(--card2) 100%);
+    border:1px solid var(--line);border-radius:16px;padding:18px}
+  .stat .k{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px}
+  .stat .v{font-size:30px;font-weight:800;margin-top:8px;letter-spacing:.5px}
+  .stat .s{font-size:12px;color:var(--muted);margin-top:4px}
+  .v.bad{color:var(--bad)} .v.good{color:var(--good)} .v.acc{
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;margin-top:20px}
+  @media(max-width:980px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+  .panel h2{margin:0 0 4px;font-size:15px;letter-spacing:.3px}
+  .panel .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+
+  /* signals */
+  .signal{border:1px solid var(--line);background:linear-gradient(180deg,#10192d,#0d1525);
+    border-radius:14px;padding:16px;margin-bottom:13px;position:relative;overflow:hidden}
+  .signal:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--grad)}
+  .signal .q{font-size:14.5px;font-weight:600;margin:0 0 12px;padding-left:6px}
+  .srow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-left:6px}
+  .side{font-weight:800;font-size:13px;padding:6px 14px;border-radius:10px;letter-spacing:.5px}
+  .side.yes,.side.up{background:rgba(40,214,163,.14);color:var(--good);border:1px solid rgba(40,214,163,.35)}
+  .side.no,.side.down{background:rgba(255,95,122,.14);color:var(--bad);border:1px solid rgba(255,95,122,.35)}
+  .meterwrap{flex:1;min-width:140px}
+  .meterwrap .lab{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px}
+  .meter{height:8px;border-radius:99px;background:#0a1120;overflow:hidden}
+  .meter > span{display:block;height:100%;background:var(--grad);border-radius:99px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding-left:6px}
+  .chip{font-size:11px;color:var(--muted);background:var(--chip);border:1px solid var(--line);
+    padding:4px 9px;border-radius:99px;font-family:ui-monospace,Menlo,monospace}
+  .agree{font-size:12px;color:var(--muted)}
+  .agree b{color:var(--txt)}
+
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;color:var(--faint);font-weight:600;font-size:11px;text-transform:uppercase;
+    letter-spacing:.5px;padding:8px 8px;border-bottom:1px solid var(--line)}
+  td{padding:10px 8px;border-bottom:1px solid #15203500}
+  tbody tr{border-bottom:1px solid #131d31}
+  tbody tr:hover{background:#0e1830}
+  .rk{color:var(--faint);font-variant-numeric:tabular-nums}
+  .addr{font-family:ui-monospace,Menlo,monospace;color:#cdd9f2}
+  .num{font-variant-numeric:tabular-nums}
+  .pos{color:var(--good)} .neg{color:var(--bad)}
+  .confbar{display:flex;align-items:center;gap:8px}
+  .confbar .b{flex:1;height:6px;border-radius:99px;background:#0a1120;overflow:hidden;min-width:50px}
+  .confbar .b>span{display:block;height:100%;background:var(--grad)}
+
+  .about{margin-top:20px}
+  .about ol{margin:8px 0 0;padding-left:18px;color:var(--muted);line-height:1.75;font-size:13.5px}
+  .about b{color:var(--txt)}
+  .empty{color:var(--faint);font-size:13px;padding:24px 6px;text-align:center}
+  .foot{margin-top:30px;color:var(--faint);font-size:12px;text-align:center;line-height:1.7}
+  .loader{display:none;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin-top:14px}
+  .loader.on{display:flex}
+  .spin{width:16px;height:16px;border:2px solid #243049;border-top-color:var(--accent);
+    border-radius:50%;animation:sp 0.7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .err{color:var(--bad);font-size:13px;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">◎</div>
+      <div>
+        <h1>Polymarket Copytrader</h1>
+        <p>Ranked by accuracy, not profit — copytrade only the consensus of the sharpest wallets.</p>
+      </div>
+    </div>
+    <span class="pill" id="srcpill">● demo data</span>
+  </header>
+
+  <div class="controls">
+    <div class="ctl">
+      <label>Source</label>
+      <div class="seg" id="seg">
+        <button data-src="demo" class="on">Demo</button>
+        <button data-src="live">Live</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <label>Wallets to scan</label>
+      <input id="wallets" type="number" value="20000" min="100" step="100" />
+    </div>
+    <div class="ctl" id="seedctl">
+      <label>Seed</label>
+      <input id="seed" type="number" value="7" />
+    </div>
+    <button class="scan" id="scan">Scan wallets →</button>
+  </div>
+  <div class="loader" id="loader"><div class="spin"></div><span id="loadtxt">Scoring wallets…</span></div>
+  <div class="err" id="err"></div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Wallets scanned</div><div class="v" id="s_scanned">—</div><div class="s">across resolved markets</div></div>
+    <div class="stat"><div class="k">Failed the test</div><div class="v bad" id="s_failed">—</div><div class="s" id="s_failed_sub">no edge vs. chance</div></div>
+    <div class="stat"><div class="k">Sharp wallets</div><div class="v good" id="s_sharp">—</div><div class="s" id="s_sharp_sub">beat the baseline</div></div>
+    <div class="stat"><div class="k">Live signals</div><div class="v acc" id="s_signals">—</div><div class="s">independent consensus</div></div>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>Surfaced signals</h2>
+      <p class="sub">A prediction shows only when several top-ranked wallets independently land on the same side.</p>
+      <div id="signals"><div class="empty">Run a scan to surface signals.</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>Sharp wallet leaderboard</h2>
+      <p class="sub">The 3% that pass, ranked by how far they beat the baseline.</p>
+      <div style="overflow:auto;max-height:560px">
+        <table>
+          <thead><tr><th>#</th><th>Wallet</th><th>Bets</th><th>Hit</th><th>Base</th><th>Edge</th><th>z</th><th>Confidence</th></tr></thead>
+          <tbody id="wallets_tb"><tr><td colspan="8" class="empty">No data yet.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel about">
+    <h2>How the model scores a wallet</h2>
+    <ol>
+      <li><b>Free-throw test.</b> Each bet has a market-implied probability baked into its price. Buy "Yes" at 0.70 and the crowd expects a 70% hit — so an average bettor wins ~70% of bets like that.</li>
+      <li><b>Skill, not luck.</b> We compare a wallet's <b>actual</b> wins to that baseline with a Poisson-binomial z-test. Hit 95 where 70 was expected and you're sharp; hit 70 and you're average.</li>
+      <li><b>97% fail.</b> Most wallets win at roughly their implied rate — they just size in with money and get lucky. Only ~3% beat chance.</li>
+      <li><b>Weighted ranking.</b> The wallet hitting 95 carries far more weight than the one hitting 75. Every wallet gets a confidence score for how far it beats the baseline.</li>
+      <li><b>Consensus signal.</b> One sharp wallet can be wrong. But when several of the sharpest independently agree, without talking to each other, that's the signal.</li>
+    </ol>
+  </div>
+
+  <div class="foot">
+    Research tool for analyzing public on-chain trading behavior. Not financial advice.<br/>
+    Past accuracy is evidence of skill, not a promise about the next market.
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let source = "demo";
+
+$("#seg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  document.querySelectorAll("#seg button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); source = b.dataset.src;
+  $("#seedctl").style.display = source==="demo" ? "" : "none";
+  $("#srcpill").textContent = source==="demo" ? "● demo data" : "● live polymarket";
+  $("#srcpill").style.color = source==="demo" ? "" : "var(--warn)";
+});
+
+function pct(x){ return (x*100).toFixed(1)+"%"; }
+function sideClass(s){ const t=(s||"").toLowerCase();
+  if(t.includes("yes")||t.includes("up")) return "yes";
+  if(t.includes("no")||t.includes("down")) return "no"; return "yes"; }
+
+async function scan(){
+  const btn=$("#scan"); btn.disabled=true;
+  $("#loader").classList.add("on"); $("#err").textContent="";
+  const n=$("#wallets").value||20000;
+  $("#loadtxt").textContent = `Scoring ${Number(n).toLocaleString()} wallets by accuracy…`;
+  const params=new URLSearchParams({source, wallets:n, seed:$("#seed").value||7});
+  try{
+    const r=await fetch("/api/scan?"+params.toString());
+    if(!r.ok) throw new Error(await r.text());
+    const d=await r.json();
+    render(d);
+  }catch(e){
+    $("#err").textContent = "Scan failed: "+(e.message||e);
+  }finally{
+    btn.disabled=false; $("#loader").classList.remove("on");
+  }
+}
+
+function render(d){
+  const st=d.stats;
+  $("#s_scanned").textContent = st.wallets_scanned.toLocaleString();
+  $("#s_failed").textContent = pct(st.fail_rate);
+  $("#s_failed_sub").textContent = st.failed_count.toLocaleString()+" wallets, no real edge";
+  $("#s_sharp").textContent = st.sharp_count.toLocaleString();
+  $("#s_sharp_sub").textContent = pct(st.pass_rate)+" passed the test";
+  $("#s_signals").textContent = st.signal_count;
+
+  // signals
+  const sc=$("#signals");
+  if(!d.signals.length){ sc.innerHTML='<div class="empty">No consensus strong enough to surface a signal.</div>'; }
+  else{
+    sc.innerHTML = d.signals.map(s=>{
+      const chips=s.wallets.slice(0,12).map(w=>`<span class="chip">${w.short}</span>`).join("");
+      const more=s.wallets.length>12?`<span class="chip">+${s.wallets.length-12} more</span>`:"";
+      return `<div class="signal">
+        <p class="q">${escapeHtml(s.question||s.market_id)}</p>
+        <div class="srow">
+          <span class="side ${sideClass(s.side)}">${escapeHtml(s.side)}</span>
+          <div class="meterwrap">
+            <div class="lab"><span>Signal confidence</span><span>${s.confidence.toFixed(1)}</span></div>
+            <div class="meter"><span style="width:${Math.min(100,s.confidence)}%"></span></div>
+          </div>
+        </div>
+        <div class="chips">${chips}${more}</div>
+        <div class="agree" style="margin-top:10px;padding-left:6px">
+          <b>${s.n_wallets}</b> sharp wallets agree independently · <b>${pct(s.agreement)}</b> of conviction-weight
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  // wallets
+  const tb=$("#wallets_tb");
+  if(!d.sharp_wallets.length){ tb.innerHTML='<tr><td colspan="8" class="empty">No wallet passed the test.</td></tr>'; return; }
+  tb.innerHTML = d.sharp_wallets.map(w=>`
+    <tr>
+      <td class="rk">${w.rank}</td>
+      <td class="addr">${w.short}</td>
+      <td class="num">${w.n_bets}</td>
+      <td class="num">${pct(w.hit_rate)}</td>
+      <td class="num" style="color:var(--muted)">${pct(w.baseline_rate)}</td>
+      <td class="num pos">+${pct(w.edge)}</td>
+      <td class="num">${w.z_score.toFixed(2)}</td>
+      <td><div class="confbar"><div class="b"><span style="width:${Math.min(100,w.confidence)}%"></span></div><span class="num">${w.confidence.toFixed(1)}</span></div></td>
+    </tr>`).join("");
+}
+
+function escapeHtml(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+$("#scan").addEventListener("click", scan);
+window.addEventListener("load", scan);
+</script>
+</body>
+</html>

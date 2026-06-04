@@ -73,6 +73,13 @@ def _cmd_live(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_serve(args: argparse.Namespace) -> int:
+    from .webapp import serve
+
+    serve(host=args.host, port=args.port, open_browser=not args.no_browser)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="polymarket-copytrader",
@@ -95,6 +102,13 @@ def build_parser() -> argparse.ArgumentParser:
     live.add_argument("--market-limit", type=int, default=1000)
     live.add_argument("--max-sharp", type=int, default=20)
     live.set_defaults(func=_cmd_live)
+
+    serve = sub.add_parser("serve", help="launch the web dashboard")
+    serve.add_argument("--host", type=str, default="127.0.0.1")
+    serve.add_argument("--port", type=int, default=8000)
+    serve.add_argument("--no-browser", action="store_true",
+                       help="don't try to open a browser window")
+    serve.set_defaults(func=_cmd_serve)
 
     return parser
 

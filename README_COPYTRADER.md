@@ -59,15 +59,35 @@ scan  ->  score  ->  rank  ->  signal
    votes with its skill weight; a signal only fires when the dominant side
    clears the wallet-count, agreement, and net-conviction thresholds.
 
-## Quick start
+## The dashboard
 
-No third-party packages are required to run the core or the demo.
+The fastest way to see it: launch the web UI and scan a universe of wallets
+right from the browser — no framework, no build step.
 
 ```bash
-# End-to-end on synthetic data (offline) — see the full flow:
+python -m polymarket_copytrader.cli serve
+# then open http://127.0.0.1:8000
+```
+
+The dashboard shows the headline stats (wallets scanned, % that failed the
+test, sharp count, live signals), the ranked **sharp-wallet leaderboard** with
+confidence bars, and the **surfaced signals** — each with the side the sharps
+favor, the signal confidence, and the independent wallets backing it. Toggle
+**Demo** (offline synthetic data) or **Live** (real Polymarket data, when the
+network allows).
+
+## Quick start (CLI)
+
+No third-party packages are required to run the core, the demo, or the UI.
+
+```bash
+# Web dashboard:
+python -m polymarket_copytrader.cli serve
+
+# End-to-end on synthetic data in the terminal:
 python -m polymarket_copytrader.cli demo
 
-# Scale it up:
+# Scale it up to 20,000 wallets:
 python -m polymarket_copytrader.cli demo --wallets 20000 --seed 1
 
 # Run the tests:
@@ -78,12 +98,18 @@ pytest
 ### Scoring real wallets
 
 ```bash
-# Provide your own newline-delimited wallet addresses:
+# Auto-scan the top wallets from the Polymarket leaderboard:
+python -m polymarket_copytrader.cli live --wallets 20000
+
+# ...or provide your own newline-delimited wallet addresses:
 python -m polymarket_copytrader.cli live --wallets-file addresses.txt
 
 # Optional, nicer HTTP:
 pip install requests
 ```
+
+> Run the live mode where Polymarket is reachable (it is blocked on some
+> sandboxed networks). The Demo source works everywhere.
 
 The live client targets the public Gamma (`gamma-api.polymarket.com`) and
 Data (`data-api.polymarket.com`) APIs. Polymarket's schema changes over time;
@@ -138,6 +164,9 @@ polymarket_copytrader/
   client.py      # Polymarket Gamma + Data API client (no hard deps)
   synthetic.py   # offline data generator for demo/tests
   pipeline.py    # scan -> score -> rank -> signal
-  cli.py         # `demo` and `live` commands
+  serialize.py   # pipeline results -> JSON for the dashboard/API
+  webapp.py      # stdlib web server powering the dashboard
+  static/        # the dashboard UI (single self-contained HTML page)
+  cli.py         # `serve`, `demo` and `live` commands
 tests/           # pytest suite
 ```

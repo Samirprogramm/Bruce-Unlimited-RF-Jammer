@@ -10,9 +10,15 @@ a few open markets to produce consensus signals.
 
 from __future__ import annotations
 
+import hashlib
 import random
 
 from .models import Market, OpenPosition, ResolvedBet, WalletHistory
+
+
+def _fake_address(seed: int, i: int) -> str:
+    """A deterministic, realistic-looking 40-hex wallet address."""
+    return "0x" + hashlib.sha1(f"{seed}:{i}".encode()).hexdigest()[:40]
 
 
 def _make_markets(n_resolved: int, n_open: int, rng: random.Random) -> list[Market]:
@@ -105,8 +111,7 @@ def generate_universe(
 
     for i in range(n_wallets):
         is_sharp = i < n_sharp
-        # Put the index right after the 0x so short displays stay distinct.
-        addr = f"0x{i:06x}{'5' if is_sharp else 'a'}{'0' * 33}"
+        addr = _fake_address(seed, i)
         if is_sharp:
             sharp_addrs.append(addr)
             skill = rng.uniform(0.12, 0.30)        # genuinely beats baseline

@@ -21,5 +21,8 @@ polymarket-copytrader = "polymarket_copytrader.cli:main"
 [tool.setuptools]
 packages = ["polymarket_copytrader"]
 
+[tool.setuptools.package-data]
+polymarket_copytrader = ["static/*.html"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -132,21 +132,49 @@ class PolymarketClient:
         )
         return raw if isinstance(raw, list) else raw.get("data", [])
 
+    # Known endpoints that have, at various times, exposed top traders. We try
+    # them in order and keep the first that yields addresses, so "scan all the
+    # top wallets" works without a manual address list.
+    _LEADERBOARD_ENDPOINTS = (
+        ("{data}/leaderboard", {"window": "all"}),
+        ("{data}/leaderboard", {"by": "volume", "window": "all"}),
+        ("{lb}/leaderboard", {"window": "all"}),
+        ("{data}/activity/leaderboard", {}),
+    )
+
     def fetch_leaderboard(self, limit: int = 100, window: str = "all") -> list[str]:
-        """Return candidate wallet addresses from the leaderboard, if exposed."""
-        try:
-            raw = self._get(
-                f"{self.data_base}/leaderboard", {"limit": limit, "window": window}
-            )
-        except Exception:  # pragma: no cover - endpoint may differ
-            return []
-        items = raw if isinstance(raw, list) else raw.get("data", [])
-        out = []
-        for it in items:
-            addr = it.get("proxyWallet") or it.get("user") or it.get("address")
-            if addr:
-                out.append(str(addr))
-        return out
+        """Return candidate wallet addresses from the leaderboard, if exposed.
+
+        Tries several known endpoint shapes and de-duplicates the result. The
+        Polymarket leaderboard API has moved around over time; adjust
+        ``_LEADERBOARD_ENDPOINTS`` if none of them resolve.
+        """
+        lb_base = self.data_base.replace("data-api", "lb-api")
+        seen: dict[str, None] = {}
+        for tmpl, extra in self._LEADERBOARD_ENDPOINTS:
+            url = tmpl.format(data=self.data_base, lb=lb_base)
+            params = {"limit": limit, **extra}
+            if "window" in params:
+                params["window"] = window
+            try:
+                raw = self._get(url, params)
+            except Exception:  # pragma: no cover - endpoint may differ
+                continue
+            items = raw if isinstance(raw, list) else raw.get("data", raw.get("leaderboard", []))
+            for it in items or []:
+                if not isinstance(it, dict):
+                    continue
+                addr = (
+                    it.get("proxyWallet")
+                    or it.get("user")
+                    or it.get("address")
+                    or it.get("wallet")
+                )
+                if addr:
+                    seen.setdefault(str(addr), None)
+            if seen:
+                break
+        return list(seen.keys())[:limit]
 
     def build_wallet_history(
         self,
